@@ -1,8 +1,6 @@
 import akka.actor.{ActorSystem, Cancellable, Props}
-import com.sedmelluq.discord.lavaplayer.player.{AudioLoadResultHandler, DefaultAudioPlayerManager}
+import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
-import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
-import com.sedmelluq.discord.lavaplayer.track.{AudioPlaylist, AudioTrack}
 import net.dv8tion.jda.api.audio.SpeakingMode
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
@@ -12,7 +10,6 @@ import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import scala.concurrent.duration._
-import scala.collection.mutable
 
 class CountdownTimerListener(
                               val preAlermFile: File,
@@ -57,6 +54,11 @@ class CountdownTimerListener(
         textChannel.sendMessage("VCに接続してから呼んでね！").queue()
 
       ){ voiceChannel =>
+        // 既になんらかのスケジュールが走っていたらキャンセルする
+        アラームスケジュール.foreach { a =>
+          a.cancel()
+        }
+
         // ローカルソースもリモートソースも読み込むlavaplayerのPlayerManagerを準備
         val audioPlayerManager: DefaultAudioPlayerManager = new DefaultAudioPlayerManager()
         AudioSourceManagers.registerLocalSource(audioPlayerManager)
