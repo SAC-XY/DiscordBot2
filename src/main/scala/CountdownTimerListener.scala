@@ -91,7 +91,7 @@ class CountdownTimerListener(
         val ldt_respawn_time = ldt.plusMinutes(TIMER.toMinutes)
 
         // オーガのバフが切れた合図
-        val ldt_orgabuff_end_time = ldt_respawn_time.minusMinutes(7)
+        val ldt_orgabuff_end_time = ldt_respawn_time.minusMinutes(5)
 
         // 1分前
         val ldt_pre_alarm = ldt_respawn_time.minusMinutes(1)
@@ -117,7 +117,7 @@ class CountdownTimerListener(
         )
         textChannel.sendMessage("ま゛っ").queue()
 
-        val cancellable1 = actorSystem.scheduler.scheduleOnce((TIMER - 7.minutes), countdownActor, "バフ終了")
+        val cancellable1 = actorSystem.scheduler.scheduleOnce((TIMER - 5.minutes), countdownActor, "バフ終了")
         val cancellable2 = actorSystem.scheduler.scheduleOnce((TIMER - 1.minutes), countdownActor, "1分前")
         val cancellable3 = actorSystem.scheduler.scheduleOnce((TIMER - 30.seconds), countdownActor, "30秒前")
         val cancellable4 = actorSystem.scheduler.scheduleOnce((TIMER - 2.seconds), countdownActor, "2秒前")
