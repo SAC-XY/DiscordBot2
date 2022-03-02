@@ -36,15 +36,16 @@ object Main extends App {
 
   val maybeDiscordToken: Option[String] = sys.env.get("DISCORD_TOKEN")
 
-  val tmp1 = resourcesToTempFile("pitaaa", ".mp4")
-  val tmp2 = resourcesToTempFile("pitagora", ".mp4")
+  val tmp1 = resourcesToTempFile("saceyecatch", ".mp4")
+  val tmp2 = resourcesToTempFile("pitaaa", ".mp4")
+  val tmp3 = resourcesToTempFile("pitagora", ".mp4")
 
   maybeDiscordToken.fold(throw new UndefinedDiscordToken("ディスコードのトークンが環境変数にみつかりませんでした")) { discordToken =>
     val jda = JDABuilder
       .createDefault(discordToken)
       .build
 
-    jda.addEventListener(new CountdownTimerListener(tmp1,tmp2))
+    jda.addEventListener(new CountdownTimerListener(tmp1, tmp2, tmp3))
   }
 
 }

@@ -10,11 +10,32 @@ class CountdownActor(
                     val textChannel: TextChannel,
                     val audioPlayerManager: AudioPlayerManager,
                     val audioPlayer: AudioPlayer,
+                    val sacEyeCatchSoundFile: File,
                     val preAlermSoundFile: File,
                     val alermSoundFile: File
                     ) extends Actor {
 
   override def receive: Receive = {
+    case "バフ終了" =>
+      audioPlayerManager.loadItem(sacEyeCatchSoundFile.getPath, new AudioLoadResultHandler(){
+        override def trackLoaded(track: AudioTrack): Unit = {
+          audioPlayer.playTrack(track)
+        }
+
+        override def playlistLoaded(playlist: AudioPlaylist): Unit = {
+          println("playlist loaded!!!")
+        }
+
+        override def noMatches(): Unit = {
+          println("ノーマッチ")
+        }
+
+        override def loadFailed(exception: FriendlyException): Unit = {
+          println("読込失敗")
+          println(exception.getMessage)
+        }
+      })
+
     case "1分前" =>
       textChannel.sendMessage("オーガ1分前").queue()
 

@@ -12,6 +12,7 @@ import java.time.format.DateTimeFormatter
 import scala.concurrent.duration._
 
 class CountdownTimerListener(
+                              val sacEyeCatchFile: File,
                               val preAlermFile: File,
                               val alermFile: File
                             ) extends ListenerAdapter {
@@ -71,13 +72,26 @@ class CountdownTimerListener(
         audioManager.setSpeakingMode(SpeakingMode.SOUNDSHARE)
         audioManager.openAudioConnection(voiceChannel)
 
-        val countdownActor = actorSystem.actorOf(Props(classOf[CountdownActor], textChannel, audioPlayerManager, audioPlayer, preAlermFile, alermFile))
+        val countdownActor = actorSystem.actorOf(
+          Props(
+            classOf[CountdownActor],
+            textChannel,
+            audioPlayerManager,
+            audioPlayer,
+            sacEyeCatchFile,
+            preAlermFile,
+            alermFile
+          )
+        )
 
         // 現在時刻
         val ldt = LocalDateTime.now()
 
         // タイマー時刻
         val ldt_respawn_time = ldt.plusMinutes(TIMER.toMinutes)
+
+        // オーガのバフが切れた合図
+        val ldt_orgabuff_end_time = ldt_respawn_time.minusMinutes(7)
 
         // 1分前
         val ldt_pre_alarm = ldt_respawn_time.minusMinutes(1)
@@ -87,6 +101,7 @@ class CountdownTimerListener(
 
         val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
         val 予約した時間 = formatter.format(ldt)
+        val オーガのバフが切れた合図 = formatter.format(ldt_orgabuff_end_time)
         val アラーム1分前 = formatter.format(ldt_pre_alarm)
         val アラーム30秒前 = formatter.format(ldt_main_alarm)
         val オーガ出現時刻 = formatter.format(ldt_respawn_time)
@@ -94,6 +109,7 @@ class CountdownTimerListener(
         logger.debug(
           Seq(
             f"予約した時刻: ${予約した時間}",
+            f"オーガのバフが切れた合図: ${オーガのバフが切れた合図}",
             f"アラーム1分前: ${アラーム1分前}",
             f"アラーム30秒前: ${アラーム30秒前}",
             f"オーガ出現時刻: ${オーガ出現時刻}",
@@ -101,11 +117,13 @@ class CountdownTimerListener(
         )
         textChannel.sendMessage("ま゛っ").queue()
 
-        val cancellable1 = actorSystem.scheduler.scheduleOnce((TIMER - 1.minutes), countdownActor, "1分前")
-        val cancellable2 = actorSystem.scheduler.scheduleOnce((TIMER - 30.seconds), countdownActor, "30秒前")
-        val cancellable3 = actorSystem.scheduler.scheduleOnce((TIMER - 2.seconds), countdownActor, "2秒前")
+        val cancellable1 = actorSystem.scheduler.scheduleOnce((TIMER - 7.minutes), countdownActor, "バフ終了")
+        val cancellable2 = actorSystem.scheduler.scheduleOnce((TIMER - 1.minutes), countdownActor, "1分前")
+        val cancellable3 = actorSystem.scheduler.scheduleOnce((TIMER - 30.seconds), countdownActor, "30秒前")
+        val cancellable4 = actorSystem.scheduler.scheduleOnce((TIMER - 2.seconds), countdownActor, "2秒前")
 
-        アラームスケジュール = Seq(cancellable1, cancellable2, cancellable3)
+
+        アラームスケジュール = Seq(cancellable1, cancellable2, cancellable3, cancellable4)
 
         logger.debug(アラームスケジュール.toString())
         logger.debug(event.getMember.getVoiceState.getChannel.getName)
